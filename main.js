@@ -56,6 +56,19 @@ function probePort(port, timeoutMs = 1000) {
   })
 }
 
+// 8/14 修复：轮询等待端口就绪（冷启动后端需数秒到数十秒）
+function waitForPort(port, timeoutMs) {
+  const deadline = Date.now() + timeoutMs
+  return new Promise((resolve) => {
+    const tick = async () => {
+      if (await probePort(port)) return resolve(true)
+      if (Date.now() > deadline) return resolve(false)
+      setTimeout(tick, 1000)
+    }
+    tick()
+  })
+}
+
 /** 轮询等待后端就绪。 */
 async function waitForBackend(port, timeoutMs = 90000) {
   const deadline = Date.now() + timeoutMs
@@ -299,6 +312,18 @@ function createWindow() {
 app.whenReady().then(async () => {
   const win = createWindow()
   await ensureBackend(win)
+
+  // 8/14 修复：冷启动时窗口先于后端创建，首次 loadURL 在后端就绪前必然失败；
+  // 等后端就绪后重新加载窗口，避免白屏。
+  if (!backendWasAlreadyRunning) {
+    const ready = await waitForPort(BACKEND_PORT, 30000)
+    if (ready) {
+      log('后端已就绪，重新加载窗口')
+      win.loadURL(BACKEND_URL)
+    } else {
+      log('等待后端就绪超时')
+    }
+  }
 
   if (!backendChild && !backendWasAlreadyRunning && !(await probePort(BACKEND_PORT))) {
     dialog.showMessageBoxSync({
