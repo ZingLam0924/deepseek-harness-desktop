@@ -1,0 +1,26 @@
+appId: com.dteacher.desktop
+productName: deepseek harness
+directories:
+  output: release
+  buildResources: build
+files:
+  - main.js
+  - package.json
+extraResources:
+  - from: build/dsh-bundle.tar.gz
+    to: dsh-bundle.tar.gz
+win:
+  icon: build/icon.png
+  target:
+    - target: nsis
+      arch:
+        - x64
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  perMachine: false
+  artifactName: deepseek-harness-Setup-${version}.exe
+  shortcutName: deepseek harness
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+npmRebuild: true

@@ -1,0 +1,12 @@
+THIRD-PARTY NOTICES
+
+This application bundles DeepSeek Harness (dsh), the open-source agent
+harness published by DeepSeek AI at https://github.com/deepseek-ai/deepseek-harness
+
+DeepSeek Harness is licensed under the MIT License:
+
+  Copyright (c) 2026 DeepSeek
+
+The full license text is included in the LICENSE file in this repository.
+The bundled copy is pinned to version 0.1.0-rc.6 and is distributed
+unmodified for runtime use inside this desktop application.

@@ -1,0 +1,7 @@
+packages:
+  - .
+allowBuilds:
+  electron: true
+  electron-winstaller: true
+overrides:
+  '@electron/get': 5.1.0

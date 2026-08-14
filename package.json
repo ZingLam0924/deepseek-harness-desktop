@@ -1,0 +1,21 @@
+{
+  "name": "d-teacher-desktop",
+  "version": "1.0.0",
+  "description": "deepseek harness desktop - Electron shell with embedded dsh web backend",
+  "main": "main.js",
+  "author": "deepseek harness",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "bundle": "node bundle-backend.cjs",
+    "build": "node bundle-backend.cjs && electron-builder --win nsis",
+    "build:portable": "node bundle-backend.cjs && electron-builder --win portable",
+    "build:dir": "node bundle-backend.cjs && electron-builder --win dir"
+  },
+  "devDependencies": {
+    "electron": "40.10.2",
+    "electron-builder": "^26.0.12",
+    "tar": "^7.5.22"
+  }
+}
