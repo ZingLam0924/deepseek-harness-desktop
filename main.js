@@ -83,7 +83,14 @@ function bundledArchive() {
 function ensureBundleInstalled(archivePath) {
   const target = userDataDir()
 
-  let needsExtract = !fs.existsSync(path.join(target, 'node.exe'))
+  // 8/14 修复：完整性校验 = 关键三件套（node.exe + 完成标记 + dsh 入口文件）。
+  // 解压中断会留下残缺 bundle（node.exe 在归档里位置靠前，可能已解出），
+  // 旧逻辑只看 node.exe 会带着残缺直接启动后端 → 白屏。
+  let needsExtract = !(
+    fs.existsSync(path.join(target, 'node.exe')) &&
+    fs.existsSync(path.join(target, '.installed.json')) &&
+    fs.existsSync(path.join(target, 'node_modules', '@deepseek-ai', 'dsh', 'lib', 'bin.js'))
+  )
   if (!needsExtract && fs.existsSync(path.join(target, '.installed.json'))) {
     try {
       const local = JSON.parse(fs.readFileSync(path.join(target, '.installed.json'), 'utf8'))
@@ -122,8 +129,17 @@ function ensureBundleInstalled(archivePath) {
     }
     fs.rmSync(nested, { recursive: true, force: true })
   }
-  if (!fs.existsSync(path.join(target, 'node.exe'))) {
-    throw new Error('解压后未找到 node.exe，bundle 解压不完整')
+  // 8/14 修复：解压后同样校验关键三件套，缺任一即判定不完整并清除缓存，
+  // 让下一次启动自动重解压（自愈），而不是带着残缺 bundle 启动白屏。
+  const critical = [
+    'node.exe',
+    path.join('node_modules', '@deepseek-ai', 'dsh', 'lib', 'bin.js'),
+  ]
+  for (const f of critical) {
+    if (!fs.existsSync(path.join(target, f))) {
+      fs.rmSync(target, { recursive: true, force: true })
+      throw new Error(`bundle 解压不完整（缺 ${f}），已清除缓存，请重启应用自动重新解压`)
+    }
   }
   fs.writeFileSync(
     path.join(target, '.installed.json'),
