@@ -7,6 +7,11 @@ DeepSeek Harness Web 界面的桌面应用，**后端内嵌、自包含**：安�
 > DeepSeek API Key（只保存在用户本机 `~/.dsh/.credentials.yaml`），
 > 不打包、不上传。默认 persona 为标准 coding agent。
 
+> **项目来源**：本项目是 [deepseek-ai/deepseek-harness](https://github.com/deepseek-ai/deepseek-harness)
+> （MIT License, Copyright (c) 2026 DeepSeek）的桌面封装——内嵌其
+> `0.1.0-rc.6` 版本，未修改其源码。完整许可证见
+> [LICENSE](LICENSE) 与 [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES)。
+
 ## 使用
 
 ```sh
@@ -42,12 +47,6 @@ bundle.json           ← 版本信息（用于增量更新判断）
 | `DTEACHER_BACKEND_URL` | `http://127.0.0.1:3080` | 窗口加载地址 |
 | `DSH_BUNDLE_NODE` | 当前 node | 捆绑用 node.exe 来源 |
 | `DSH_BUNDLE_NPM_CLI` | 本机 npm-cli.js | 捆绑安装用 npm CLI |
-
-## 发布到 GitHub
-
-1. `pnpm run build` 产出 `release/deepseek-harness-Setup-<version>.exe`
-2. 上传到 GitHub Releases（注意：文件较大，GitHub 单文件上限 2GB，无碍）
-3. 或连同本项目源码一起推送，README 说明安装步骤
 
 ## 说明
 
