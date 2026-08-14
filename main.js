@@ -8,7 +8,7 @@
  *     node_modules/         ← @deepseek-ai/dsh 真实依赖树
  *     dsh-home/profiles/web ← 预初始化的 web profile（默认 persona）
  *
- * 首次运行把归档解压到 %LOCALAPPDATA%\deepseek-harness\bundle（可写、可更新），
+ * 首次运行把归档解压到 %APPDATA%\d-teacher-desktop\bundle（可写、可更新），
  * 之后用捆绑 node.exe 启动 dsh web。DeepSeek API Key 由用户在首次运行的
  * 引导页里填入，写入用户自己的 ~/.dsh/.credentials.yaml。
  *
@@ -22,14 +22,24 @@ const { spawn } = require('node:child_process')
 const http = require('node:http')
 const path = require('node:path')
 const fs = require('node:fs')
-const os = require('node:os')
 const { homedir } = require('node:os')
 
 const IS_DEV = process.argv.includes('--dev')
 const BACKEND_PORT = Number(process.env.DTEACHER_BACKEND_PORT || 3080)
 const BACKEND_URL = process.env.DTEACHER_BACKEND_URL || `http://127.0.0.1:${BACKEND_PORT}`
 
-/** 应用数据目录（%LOCALAPPDATA%\deepseek-harness）——bundle 解压与运行时文件都在这。 */
+/** 文件日志：写入 userData 下的 main.log，不依赖 stdout 重定向（便于诊断）。 */
+function log(...args) {
+  const line = `[${new Date().toISOString()}] ${args.join(' ')}`
+  console.log(line)
+  try {
+    const dir = app.getPath('userData')
+    fs.mkdirSync(dir, { recursive: true })
+    fs.appendFileSync(path.join(dir, 'main.log'), line + '\n')
+  } catch { /* 日志失败不影响主流程 */ }
+}
+
+/** 应用数据目录（%APPDATA%\d-teacher-desktop\bundle）——bundle 解压与运行时文件都在这。 */
 function userDataDir() {
   return path.join(app.getPath('userData'), 'bundle')
 }
@@ -47,7 +57,7 @@ function probePort(port, timeoutMs = 1000) {
 }
 
 /** 轮询等待后端就绪。 */
-async function waitForBackend(port, timeoutMs = 60000) {
+async function waitForBackend(port, timeoutMs = 90000) {
   const deadline = Date.now() + timeoutMs
   while (Date.now() < deadline) {
     if (await probePort(port)) return true
@@ -84,22 +94,22 @@ function ensureBundleInstalled(archivePath) {
   }
   if (!needsExtract) return target
 
-  console.log(`[deepseek harness] 解压后端 bundle 到 ${target} ...`)
+  log('解压后端 bundle 到', target)
   fs.rmSync(target, { recursive: true, force: true })
   fs.mkdirSync(target, { recursive: true })
   try {
-    // 用系统 tar 解压（Win10+ 自带 bsdtar，支持 gz）。同步阻塞，解压 136MB
-    // /7 万文件需要数十秒到一两分钟，属正常。
+    // 用系统 tar 解压（Win10+ 自带 bsdtar，支持 gz）。同步阻塞，解压 90MB
+    // /3 万文件需要数十秒到一两分钟，属正常。
     const { execFileSync } = require('node:child_process')
     const out = execFileSync('tar.exe', ['-xzf', archivePath, '-C', target], {
       stdio: 'pipe',
       maxBuffer: 64 * 1024 * 1024,
     })
-    if (out && out.length) console.log('[deepseek harness] tar 输出:', String(out).slice(0, 500))
+    if (out && out.length) log('tar 输出:', String(out).slice(0, 500))
   } catch (err) {
-    console.error('[deepseek harness] tar 解压失败:', err && err.message ? err.message : err)
-    if (err && err.stdout) console.error('tar stdout:', String(err.stdout).slice(0, 500))
-    if (err && err.stderr) console.error('tar stderr:', String(err.stderr).slice(0, 500))
+    log('tar 解压失败:', err && err.message ? err.message : err)
+    if (err && err.stdout) log('tar stdout:', String(err.stdout).slice(0, 500))
+    if (err && err.stderr) log('tar stderr:', String(err.stderr).slice(0, 500))
     throw new Error(`tar 解压失败: ${err && err.message ? err.message : String(err)}`)
   }
   // 归档内含 dsh-bundle/ 顶层目录，解压后把其中的条目上移到 target 根。
@@ -171,7 +181,7 @@ async function promptForApiKey(win) {
   if (!candidate) return promptForApiKey(win)
 
   fs.writeFileSync(credFile, `DEEPSEEK_API_KEY: ${candidate}\n`, { mode: 0o600 })
-  console.log('[deepseek harness] API Key 已保存到', credFile)
+  log('API Key 已保存到', credFile)
   return true
 }
 
@@ -180,13 +190,14 @@ let backendWasAlreadyRunning = false
 
 async function ensureBackend(win) {
   if (await probePort(BACKEND_PORT)) {
-    console.log(`[deepseek harness] 检测到后端已在运行: ${BACKEND_URL}`)
+    log('检测到后端已在运行:', BACKEND_URL)
     backendWasAlreadyRunning = true
     return
   }
 
   const bundle = bundledArchive()
   if (!bundle) {
+    log('未找到捆绑的后端归档')
     dialog.showErrorBox('deepseek harness', '未找到捆绑的后端 (dsh-bundle.tar.gz)。请重新安装应用。')
     return
   }
@@ -195,7 +206,7 @@ async function ensureBackend(win) {
   try {
     installed = ensureBundleInstalled(bundle)
   } catch (err) {
-    console.error('[deepseek harness] 后端 bundle 解压失败:', err)
+    log('后端 bundle 解压失败:', err && err.message ? err.message : String(err))
     dialog.showErrorBox(
       'deepseek harness',
       '后端 bundle 解压失败，应用无法启动。\n\n' + (err && err.message ? err.message : String(err)),
@@ -213,7 +224,8 @@ async function ensureBackend(win) {
   const dshCli = path.join(installed, 'node_modules', '@deepseek-ai', 'dsh', 'lib', 'bin.js')
   const dshHome = path.join(installed, 'dsh-home')
 
-  console.log(`[deepseek harness] 启动内嵌 dsh web (DSH_HOME=${dshHome}) ...`)
+  log('启动内嵌 dsh web', `DSH_HOME=${dshHome}`)
+  log('node.exe 存在:', fs.existsSync(nodeExe), '| dshCli 存在:', fs.existsSync(dshCli))
   // 诊断期捕获子进程输出；正式版可改回 ignore。
   backendChild = spawn(nodeExe, [dshCli, 'web', '--port', String(BACKEND_PORT)], {
     cwd: installed,
@@ -228,15 +240,15 @@ async function ensureBackend(win) {
   let childErr = ''
   backendChild.stdout && backendChild.stdout.on('data', (d) => { childOut += d })
   backendChild.stderr && backendChild.stderr.on('data', (d) => { childErr += d })
-  backendChild.on('error', (err) => console.error('[deepseek harness] 后端启动失败:', err))
+  backendChild.on('error', (err) => log('后端 spawn error:', err && err.message ? err.message : String(err)))
   backendChild.on('exit', (code, signal) => {
-    console.error(`[deepseek harness] 后端退出 code=${code} signal=${signal}`)
-    if (childErr) console.error('[deepseek harness] 后端 stderr:', String(childErr).slice(0, 2000))
-    if (childOut) console.log('[deepseek harness] 后端 stdout:', String(childOut).slice(0, 1000))
+    log(`后端退出 code=${code} signal=${signal}`)
+    if (childErr) log('后端 stderr:', String(childErr).slice(0, 2000))
+    if (childOut) log('后端 stdout:', String(childOut).slice(0, 1000))
   })
 
   if (!(await waitForBackend(BACKEND_PORT))) {
-    console.error('[deepseek harness] 等待后端超时。')
+    log('等待后端超时。')
   }
 }
 
