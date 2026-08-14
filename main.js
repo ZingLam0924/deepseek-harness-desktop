@@ -297,7 +297,9 @@ function createWindow() {
     },
   })
 
-  win.loadURL(BACKEND_URL)
+  // 8/14：启动期先显示本地加载页（秒开），后端就绪后再切到 Web UI，
+  // 避免冷启动白屏等待期无提示。
+  win.loadFile(path.join(__dirname, 'loading.html'))
   win.setTitle('deepseek harness')
 
   win.webContents.setWindowOpenHandler(({ url }) => {
