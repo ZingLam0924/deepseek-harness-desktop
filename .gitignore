@@ -3,4 +3,5 @@ release/
 dist/
 *.log
 build/dsh-bundle/
+build/dsh-bundle-stage*/
 build/dsh-bundle.tar.gz

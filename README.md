@@ -9,7 +9,7 @@ DeepSeek Harness Web 界面的桌面应用，**后端内嵌、自包含**：安�
 
 > **项目来源**：本项目是 [deepseek-ai/deepseek-harness](https://github.com/deepseek-ai/deepseek-harness)
 > （MIT License, Copyright (c) 2026 DeepSeek）的桌面封装——内嵌其
-> `0.1.0-rc.6` 版本，未修改其源码。完整许可证见
+> `0.1.1-rc.2` 版本，未修改其源码。完整许可证见
 > [LICENSE](LICENSE) 与 [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES)。
 
 ## 使用
