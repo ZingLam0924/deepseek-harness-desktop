@@ -20,7 +20,7 @@ const STAGE = path.join(BUILD, 'dsh-bundle-stage')
 const ARCHIVE = path.join(BUILD, 'dsh-bundle.tar.gz')
 
 const NODE_EXE = process.env.DSH_BUNDLE_NODE || process.execPath
-const DSH_VERSION = '0.1.1-rc.2'
+const DSH_VERSION = '0.1.5-alpha.1'
 
 function run(cmd, args, opts = {}) {
   console.log(`> ${cmd} ${args.join(' ')}`)
