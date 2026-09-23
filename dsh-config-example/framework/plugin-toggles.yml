@@ -1,0 +1,19 @@
+# 插件开关（框架件）——桌面壳 + web 界面的几个调优点
+
+# 桌面壳自带 UI，不需要再自动弹浏览器
+- id: web-runtime
+  config:
+    openBrowser: false
+
+# 关掉 Live2D 宠物：它的 requestAnimationFrame 是无限帧循环，实测把页面顶到 241fps
+# 且每秒近 3000 次 DOM 变更，与皮肤装饰层叠加会整屏抖动。需要时可在 设置→插件→宠物 改回。
+- id: web-ui-pet
+  disabled: true
+
+# 关掉「会话内逐文件审查大灰卡」（change-review 面板）
+- id: dsh-change-review
+  disabled: true
+
+# 关掉侧边栏底部的会话统计灰条（LLM 用时 / 首 token / 缓存命中 / 输入 tokens）
+- id: web-ui-remote-web-ui
+  disabled: true

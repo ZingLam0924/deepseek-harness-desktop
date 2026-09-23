@@ -11,16 +11,6 @@
 | 内嵌 dsh 后端 | **`0.1.5-alpha.1`** |
 | 打包时间 | 2026-09-09 |
 
-## 操作系统与硬件
-
-| 项 | 值 |
-|---|---|
-| 操作系统 | Windows 11 专业版，build 26200（64 位） |
-| 机型 | LENOVO 82WK |
-| CPU | 13th Gen Intel Core i9-13900HX（24 核 / 32 线程） |
-| 内存 | 16 GB |
-| 显卡 | NVIDIA GeForce RTX 4060 Laptop GPU |
-
 ## 运行时
 
 | 运行时 | 版本 |
