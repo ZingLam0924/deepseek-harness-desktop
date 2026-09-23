@@ -1,0 +1,37 @@
+# 本机 DSH 用到的 MCP 工具清单（示例）
+# 下面是「装了哪几个 MCP」，命令路径请按自己机器替换（占位符见尖括号）。
+# 这些都是公开的 npm / PyPI 包，装法见各自 README。
+#
+#   scrapling   网页抓取
+#   playwright  浏览器自动化
+#   weapp-dev   微信小程序调试
+#   context7    开发文档检索
+- insert:
+    - id: mcp-scrapling
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: scrapling
+        transport: stdio
+        command: '<PYTHON_HOME>\Scripts\scrapling-mcp.exe'
+    - id: mcp-playwright
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: playwright
+        transport: stdio
+        command: '<NPM_GLOBAL>\@automatalabs\mcp-server-playwright\dist\index.js'
+    - id: mcp-weapp-dev
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: weapp-dev
+        transport: stdio
+        command: '<NPM_GLOBAL>\@yfme\weapp-dev-mcp\dist\index.js'
+        env:
+          WEAPP_WS_ENDPOINT: ws://localhost:9420
+          WEAPP_AUTOLAUNCH: 'true'
+          WEAPP_CLI_PATH: '<WECHAT_DEVTOOLS>\cli.bat'
+    - id: mcp-context7
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: context7
+        transport: stdio
+        command: '<NPM_GLOBAL>\@upstash\context7-mcp\dist\index.js'
